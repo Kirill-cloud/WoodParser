@@ -13,11 +13,11 @@ namespace WoodParser
 {
 	internal class Program
 	{
-		static int pageSize = 20;
+		static int pageSize = 20; // 20 как стандартные запросы при просмотре страниц
 		static void Main(string[] args)
 		{
 			Console.WriteLine("started");
-			DealProvider dealProvider = new DealProvider(null); // надо из конфига бд сделать, но мне лень пока
+			DealProvider dealProvider = new DealProvider(null); // надо из конфига бд сделать
 			OrganizationProvider organizationProvider = new OrganizationProvider(null);
 
 			int j = 1;
@@ -31,10 +31,10 @@ namespace WoodParser
 				var response = client.Execute(request);
 				var count = JsonConvert.DeserializeObject<ApiWoodResponse>(response.Content).Data.SearchReportWoodDeal.total;
 
-				for (int i = 0; i <= count / pageSize/10000; i++)
+				for (int i = 0; i <= count / pageSize; i++)
 				{
 					request = new RestRequest("open-area/graphql", Method.Post);
-					request.AddJsonBody(new DefaultWoodQuery(i));
+					request.AddJsonBody(new DefaultWoodQuery(i,pageSize));
 					response = client.Execute(request);
 					var deals = JsonConvert.DeserializeObject<ApiWoodResponse>(response.Content).Data.SearchReportWoodDeal.Content;
 
@@ -45,11 +45,11 @@ namespace WoodParser
 							var deal = dealProvider.GetDeal(item.dealNumber);
 							if (deal != null)
 							{
-								Console.WriteLine($"Сделка {item.dealNumber} уже добавлена");
+								Console.WriteLine($"Сделка {item.dealNumber} уже добавлена"); // cw Надо заменить на логгер
 								continue;
 							}
 						}
-						catch (Exception) // если нет записи бросается юсключение на пустую последовательность
+						catch (Exception) // если нет записи бросается исключение на пустую последовательность
 						{
 							int sellerId;
 							try
@@ -94,9 +94,9 @@ namespace WoodParser
 							}); ;
 							Console.WriteLine($"Сделка {item.dealNumber} добавлена");
 						}
-						Console.WriteLine("".PadLeft(20,'-'));
+						Console.WriteLine("".PadLeft(60,'-'));
 					}
-					Console.WriteLine("".PadLeft(20, '='));
+					Console.WriteLine("".PadLeft(60, '='));
 					Console.WriteLine(String.Format("{0:0.00}%",(double)i* pageSize / count * 100));
 				}
 				j++;
